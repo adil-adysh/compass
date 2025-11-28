@@ -1,0 +1,32 @@
+# PowerShell files
+*.ps1xml
+*.log
+*.pfx
+*.snk
+
+# Build artifacts
+/bin
+/obj
+/packages
+/build
+
+# User-specific files
+*.user
+*.suo
+
+# Test results
+/TestResults
+/coverage
+
+# PSReadline history
+/PSReadline
+*.bak
+PSReadline.*
+
+# PowerShell module analysis cache
+PSScriptAnalyzer.psd1
+PSModuleAnalyzer.psd1
+PSModuleAnalyzerCache.psd1
+
+# VSCode
+.vscode/
