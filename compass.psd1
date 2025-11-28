@@ -32,6 +32,7 @@
         'Copy-FilesToBuffer'
         'Cut-FilesToBuffer'
         'Paste-Files'
+        'Find-Item'
     )
 
     # Cmdlets to export from this module
@@ -41,7 +42,7 @@
     VariablesToExport = @()
 
     # Aliases to export from this module
-    AliasesToExport   = @('recent', 'ccp', 'ccut', 'pp')
+    AliasesToExport   = @('recent', 'ccp', 'ccut', 'pp', 'search')
 
     # Private data to pass to the module specified in RootModule/ModuleToProcess
     PrivateData       = @{
