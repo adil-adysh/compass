@@ -58,23 +58,25 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-  # Uncomment the job below to publish to PowerShell Gallery
-  # publish-gallery:
-  #   name: Publish to PowerShell Gallery
-  #   needs: test
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - name: Checkout Repository
-  #       uses: actions/checkout@v4
-  #
-  #     - name: Publish Module
-  #       shell: pwsh
-  #       env:
-  #         NUGET_KEY: ${{ secrets.NUGET_KEY }}
-  #       run: |
-  #         $version = $env:GITHUB_REF -replace "refs/tags/v", ""
-  #         
-  #         # Optional: Update .psd1 version to match tag
-  #         # Update-ModuleManifest -Path ./compass.psd1 -ModuleVersion $version
-  #         
-  #         Publish-Module -Path . -NuGetApiKey $env:NUGET_KEY -Verbose
+  publish-gallery:
+    name: Publish to PowerShell Gallery
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Publish Module
+        shell: pwsh
+        env:
+          NUGET_KEY: ${{ secrets.NUGET_KEY }}
+        run: |
+          $version = $env:GITHUB_REF -replace "refs/tags/v", ""
+          
+          Write-Host "Publishing version: $version"
+          
+          # Update .psd1 version to match tag
+          Update-ModuleManifest -Path ./compass.psd1 -ModuleVersion $version
+          
+          # Publish
+          Publish-Module -Path . -NuGetApiKey $env:NUGET_KEY -Verbose
