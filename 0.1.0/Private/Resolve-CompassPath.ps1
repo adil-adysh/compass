@@ -5,14 +5,10 @@ function Resolve-CompassPath {
         [Object]$InputObject
     )
 
-    $literalPath = if ($InputObject -is [System.Management.Automation.PathInfo]) {
-        $InputObject.ProviderPath
-    } elseif ($InputObject -is [System.IO.FileSystemInfo]) {
-        $InputObject.FullName
-    } elseif ($null -ne $InputObject.FullName) {
-        $InputObject.FullName
-    } else {
-        [string]$InputObject
+    $literalPath = switch ($InputObject) {
+        { $_ -is [System.Management.Automation.PathInfo] } { $_.ProviderPath }
+        { $_ -is [System.IO.FileSystemInfo] } { $_.FullName }
+        default { [string]$InputObject }
     }
 
     try {

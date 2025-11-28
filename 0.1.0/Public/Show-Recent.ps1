@@ -204,7 +204,6 @@ function Show-Recent {
                     Size = Format-FileSize -Bytes $_.Length
                     Modified = $_.LastWriteTime.ToString('yyyy-MM-dd HH:mm')
                     Path = $_.DirectoryName
-                    FullName = $_.FullName
                 }
             }
         } catch {

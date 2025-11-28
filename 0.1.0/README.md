@@ -131,33 +131,6 @@ The command returns custom objects with the following properties:
 - **Modified**: Last modification timestamp (yyyy-MM-dd HH:mm)
 - **Path**: Directory path
 
-## Text Selection
-
-The `Select-Copy` command (alias `scopy`) allows you to slice and search text from the pipeline and copy it to the clipboard.
-
-### Slicing
-
-```powershell
-# Copy the first 20 lines
-gh run view --log | scopy -First 20
-
-# Copy the last 100 lines
-gh run view --log | scopy -Last 100
-
-# Copy specific lines (e.g., line 10 and 20)
-gh run view --log | scopy -Range 10, 20
-```
-
-### Contextual Search
-
-```powershell
-# Find "Error" and copy it with 5 lines of context
-gh run view --log | scopy -Pattern "Error" -Context 5
-
-# Find "Exception" but do not merge overlapping blocks (insert separators)
-gh run view --log | scopy -Pattern "Exception" -Merge:$false
-```
-
 ## Requirements
 
 - PowerShell 7.0 or higher
@@ -199,11 +172,6 @@ Contributions are welcome! Please ensure:
 This project is licensed under the Apache License, Version 2.0 - see the [LICENSE](LICENSE) file for details.
 
 ## Version History
-
-### 0.2.0 (2025-11-29)
-
-- Added `Select-Copy` (`scopy`) for text slicing and contextual search.
-- Fixed compatibility issue with `ls | ccp` and `ls | ccut` (FileInfo object handling).
 
 ### 1.0.0 (2025-11-28)
 

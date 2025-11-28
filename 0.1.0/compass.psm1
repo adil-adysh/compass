@@ -25,4 +25,4 @@ if (Test-Path $publicFunctions) {
 }
 
 # Export Functions and Aliases
-Export-ModuleMember -Function Show-Recent, Copy-FilesToBuffer, Cut-FilesToBuffer, Paste-Files, Find-Item, Select-Copy -Alias recent, ccp, ccut, pp, search, scopy
+Export-ModuleMember -Function Show-Recent, Copy-FilesToBuffer, Cut-FilesToBuffer, Paste-Files, Find-Item -Alias recent, ccp, ccut, pp, search

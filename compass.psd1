@@ -3,7 +3,7 @@
     RootModule        = 'compass.psm1'
 
     # Version number of this module.
-    ModuleVersion     = '0.1.0'
+    ModuleVersion     = '0.2.0'
 
     # ID used to uniquely identify this module
     GUID              = 'd2d250b3-766e-4c38-9b76-ba8735a26c89'
@@ -33,6 +33,7 @@
         'Cut-FilesToBuffer'
         'Paste-Files'
         'Find-Item'
+        'Select-Copy'
     )
 
     # Cmdlets to export from this module
@@ -42,7 +43,7 @@
     VariablesToExport = @()
 
     # Aliases to export from this module
-    AliasesToExport   = @('recent', 'ccp', 'ccut', 'pp', 'search')
+    AliasesToExport   = @('recent', 'ccp', 'ccut', 'pp', 'search', 'scopy')
 
     # Private data to pass to the module specified in RootModule/ModuleToProcess
     PrivateData       = @{
@@ -51,7 +52,7 @@
             LicenseUri = 'https://opensource.org/licenses/MIT'
             ProjectUri = 'https://github.com/adil-adysh/compass'
             IconUri    = ''
-            ReleaseNotes = '0.1.0 initial packaged release: refactor to Public/Private, added clipboard and search features, and CI/release workflows.'
+            ReleaseNotes = '0.2.0: Added Select-Copy (scopy) for text slicing and contextual search. Fixed ls | ccp compatibility.'
         }
     }
 }
