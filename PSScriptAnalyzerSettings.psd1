@@ -7,9 +7,12 @@
     # Include default rules
     IncludeDefaultRules = $true
     
-    # Exclude specific rules if needed
+    # Exclude specific rules that conflict with module conventions
     ExcludeRules = @(
-        # Add any rules to exclude here
+        'PSAvoidUsingWriteHost'
+        'PSUseApprovedVerbs'
+        'PSUseSingularNouns'
+        'PSUseBOMForUnicodeEncodedFile'
     )
     
     # Additional rules configuration

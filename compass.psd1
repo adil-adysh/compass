@@ -27,7 +27,12 @@
     CompatiblePSEditions = @('Core', 'Desktop')
 
     # Functions to export from this module
-    FunctionsToExport = @('Show-Recent')
+    FunctionsToExport = @(
+        'Show-Recent'
+        'Copy-FilesToBuffer'
+        'Cut-FilesToBuffer'
+        'Paste-Files'
+    )
 
     # Cmdlets to export from this module
     CmdletsToExport   = @()
@@ -36,7 +41,7 @@
     VariablesToExport = @()
 
     # Aliases to export from this module
-    AliasesToExport   = @('recent')
+    AliasesToExport   = @('recent', 'ccp', 'ccut', 'pp')
 
     # Private data to pass to the module specified in RootModule/ModuleToProcess
     PrivateData       = @{

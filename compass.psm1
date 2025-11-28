@@ -1,5 +1,12 @@
 # PowerShell module compass
 
+if (-not $Script:CompassClipboard) {
+    $Script:CompassClipboard = @{
+        Operation = $null
+        Items = [System.Collections.Generic.List[string]]::new()
+    }
+}
+
 function Show-Recent {
     <#
     .SYNOPSIS
@@ -232,6 +239,224 @@ function Format-FileSize {
     }
 }
 
-# Export alias
+function Resolve-CompassPath {
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory)]
+        [Object]$InputObject
+    )
+
+    $literalPath = switch ($InputObject) {
+        { $_ -is [System.Management.Automation.PathInfo] } { $_.ProviderPath }
+        { $_ -is [System.IO.FileSystemInfo] } { $_.FullName }
+        default { [string]$InputObject }
+    }
+
+    try {
+        $resolved = (Resolve-Path -LiteralPath $literalPath -ErrorAction Stop).ProviderPath
+        Write-Verbose "Resolved clipboard item '$literalPath' -> '$resolved'"
+        return $resolved
+    } catch {
+        Write-Warning "Skipping missing clipboard item: $literalPath"
+        return $null
+    }
+}
+
+function Copy-FilesToBuffer {
+    <#
+    .SYNOPSIS
+        Buffer files and folders for copy operations in the Compass clipboard.
+    .DESCRIPTION
+        Accepts pipeline input (paths or FileSystemObjects), resolves absolute paths, and stores them for `Paste-Files`.
+    .EXAMPLE
+        Get-ChildItem -Path .\scripts | ccp
+    #>
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory, ValueFromPipeline = $true, ValueFromPipelineByPropertyName = $true)]
+        [Alias('Path', 'LiteralPath')]
+        [Object]$InputObject
+    )
+
+    begin {
+        $buffer = [System.Collections.Generic.List[string]]::new()
+    }
+
+    process {
+        $resolved = Resolve-CompassPath -InputObject $InputObject
+        if ($resolved) {
+            Write-Verbose "Buffering for copy: $resolved"
+            $buffer.Add($resolved)
+        }
+    }
+
+    end {
+        if ($buffer.Count -eq 0) {
+            Write-Warning 'No valid items were provided to copy to the clipboard.'
+            return
+        }
+
+        $Script:CompassClipboard = @{
+            Operation = 'Copy'
+            Items = $buffer
+        }
+
+        Write-Host "📋 Copied $($buffer.Count) items"
+    }
+}
+
+function Cut-FilesToBuffer {
+    <#
+    .SYNOPSIS
+        Buffer files and folders for move operations in the Compass clipboard.
+    .DESCRIPTION
+        Resolves pipeline input to full paths and marks them for `Paste-Files` to perform a move later.
+    .EXAMPLE
+        ccut README.md
+    #>
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory, ValueFromPipeline = $true, ValueFromPipelineByPropertyName = $true)]
+        [Alias('Path', 'LiteralPath')]
+        [Object]$InputObject
+    )
+
+    begin {
+        $buffer = [System.Collections.Generic.List[string]]::new()
+    }
+
+    process {
+        $resolved = Resolve-CompassPath -InputObject $InputObject
+        if ($resolved) {
+            Write-Verbose "Buffering for cut: $resolved"
+            $buffer.Add($resolved)
+        }
+    }
+
+    end {
+        if ($buffer.Count -eq 0) {
+            Write-Warning 'No valid items were provided to cut to the clipboard.'
+            return
+        }
+
+        $Script:CompassClipboard = @{
+            Operation = 'Cut'
+            Items = $buffer
+        }
+
+        Write-Host "✂️ Cut $($buffer.Count) items (Pending Move)"
+    }
+}
+
+function Paste-Files {
+    <#
+    .SYNOPSIS
+        Pastes the Compass clipboard contents into the current directory.
+    .DESCRIPTION
+        Computes destination paths, enforces Ouroboros protection, and executes Copy-Item or Move-Item based on the buffered operation.
+    .EXAMPLE
+        pp -Force
+    #>
+    [CmdletBinding()]
+    param(
+        [switch]$Force
+    )
+
+    begin {
+        $clipboard = $Script:CompassClipboard
+        if (-not $clipboard -or -not $clipboard.Items -or $clipboard.Items.Count -eq 0) {
+            Write-Warning 'Clipboard is empty. Use Copy-FilesToBuffer or Cut-FilesToBuffer first.'
+            $shouldProcess = $false
+            return
+        }
+
+        $shouldProcess = $true
+        $destinationRoot = (Get-Location).ProviderPath
+        $successCount = 0
+        Write-Verbose "Clipboard operation: $($clipboard.Operation). Destination root is $destinationRoot"
+    }
+
+    process {
+        if (-not $shouldProcess) {
+            return
+        }
+
+        foreach ($item in $clipboard.Items) {
+            Write-Verbose "Processing clipboard item: $item"
+
+            if (-not (Test-Path -LiteralPath $item)) {
+                Write-Warning "Source missing (ghost), skipping: $item"
+                continue
+            }
+
+            $targetPath = Join-Path -Path $destinationRoot -ChildPath (Split-Path -Path $item -Leaf)
+            $sourceFull = [System.IO.Path]::GetFullPath($item)
+            $destinationFull = [System.IO.Path]::GetFullPath($destinationRoot)
+
+            $isContainer = Test-Path -LiteralPath $item -PathType Container
+            $isDescendant = $destinationFull -eq $sourceFull -or $destinationFull.StartsWith($sourceFull + [IO.Path]::DirectorySeparatorChar, [System.StringComparison]::OrdinalIgnoreCase)
+
+            if ($isContainer -and $isDescendant) {
+                Write-Error "Cannot paste directory '$item' into itself or a child (Ouroboros guard)."
+                continue
+            }
+
+            if ((Test-Path -LiteralPath $targetPath)) {
+                if (-not $Force) {
+                    Write-Warning "Target exists, skipping to avoid overwrite: $targetPath"
+                    continue
+                }
+            }
+
+            try {
+                $operationParams = @{
+                    LiteralPath = $item
+                    Destination = $targetPath
+                }
+
+                if ($Force) {
+                    $operationParams.Force = $true
+                }
+
+                if ($clipboard.Operation -eq 'Copy') {
+                    $operationParams.Recurse = $true
+                    Write-Verbose "Copying '$item' to '$targetPath'"
+                    Copy-Item @operationParams
+                } elseif ($clipboard.Operation -eq 'Cut') {
+                    Write-Verbose "Moving '$item' to '$targetPath'"
+                    Move-Item @operationParams
+                } else {
+                    Write-Warning 'Clipboard operation is invalid. Use Copy-FilesToBuffer or Cut-FilesToBuffer to populate the buffer.'
+                    break
+                }
+
+                $successCount++
+            } catch {
+                Write-Warning "Failed to $($clipboard.Operation.ToLower()) '$item': $_"
+            }
+        }
+    }
+
+    end {
+        if (-not $shouldProcess) {
+            return
+        }
+
+        $indicator = if ($clipboard.Operation -eq 'Copy') { '📥' } else { '📤' }
+        Write-Host "$indicator Pasted $successCount item(s)."
+
+        if ($clipboard.Operation -eq 'Cut') {
+            $Script:CompassClipboard = @{
+                Operation = $null
+                Items = [System.Collections.Generic.List[string]]::new()
+            }
+        }
+    }
+}
+
+# Export aliases and functions
 New-Alias -Name recent -Value Show-Recent -Description 'Alias for Show-Recent command'
-Export-ModuleMember -Function Show-Recent -Alias recent
+New-Alias -Name ccp -Value Copy-FilesToBuffer -Description 'Copy items to the Compass clipboard'
+New-Alias -Name ccut -Value Cut-FilesToBuffer -Description 'Cut items to the Compass clipboard'
+New-Alias -Name pp -Value Paste-Files -Description 'Paste items from the Compass clipboard'
+Export-ModuleMember -Function Show-Recent, Copy-FilesToBuffer, Cut-FilesToBuffer, Paste-Files -Alias recent, ccp, ccut, pp

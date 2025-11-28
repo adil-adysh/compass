@@ -89,6 +89,26 @@ recent -Today
 recent -Days 7 -Extension '*.txt'
 ```
 
+## Clipboard Workflow
+
+Compass mimics the Explorer clipboard by buffering full paths via three stateful commands:
+
+- `Copy-FilesToBuffer` (alias `ccp`): Stages items for copying.
+- `Cut-FilesToBuffer` (alias `ccut`): Stages items for moving.
+- `Paste-Files` (alias `pp`): Pastes the buffered items into the current directory.
+
+Each command emits verbose logging when `-Verbose` is specified, warns when sources are missing, and prevents pasting a directory into itself or a child folder (Ouroboros guard). Name collisions are skipped unless you pass `-Force` to `Paste-Files`.
+
+```powershell
+# Buffer files for copy and cut operations
+Get-ChildItem '*.ps1' | ccp
+ccut README.md
+
+# Paste into the current directory (skips existing targets unless -Force is provided)
+pp
+pp -Force
+```
+
 ## Parameters
 
 | Parameter | Type | Description | Default |
