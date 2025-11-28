@@ -1,0 +1,80 @@
+name: Release Compass Module
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  test:
+    name: Run Pester Tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Run Pester Tests
+        shell: pwsh
+        run: |
+          Invoke-Pester -Path ./tests/*.Tests.ps1 -Output Detailed
+
+  release:
+    name: Create Release
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Package Module
+        shell: pwsh
+        run: |
+          $moduleName = "compass"
+          $version = $env:GITHUB_REF -replace "refs/tags/v", ""
+          $stagingPath = Join-Path "staging" $moduleName
+          
+          # Create staging directory
+          New-Item -Path $stagingPath -ItemType Directory -Force | Out-Null
+          
+          # Copy module files
+          Copy-Item -Path "compass.psd1", "compass.psm1" -Destination $stagingPath
+          Copy-Item -Path "Public", "Private" -Destination $stagingPath -Recurse
+          
+          # Create Zip
+          $zipName = "$moduleName-$version.zip"
+          Compress-Archive -Path "$stagingPath/*" -DestinationPath $zipName
+          
+          # Output the zip name for the next step
+          "ZIP_NAME=$zipName" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: compass-*.zip
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  # Uncomment the job below to publish to PowerShell Gallery
+  # publish-gallery:
+  #   name: Publish to PowerShell Gallery
+  #   needs: test
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - name: Checkout Repository
+  #       uses: actions/checkout@v4
+  #
+  #     - name: Publish Module
+  #       shell: pwsh
+  #       env:
+  #         NUGET_KEY: ${{ secrets.NUGET_KEY }}
+  #       run: |
+  #         $version = $env:GITHUB_REF -replace "refs/tags/v", ""
+  #         
+  #         # Optional: Update .psd1 version to match tag
+  #         # Update-ModuleManifest -Path ./compass.psd1 -ModuleVersion $version
+  #         
+  #         Publish-Module -Path . -NuGetApiKey $env:NUGET_KEY -Verbose

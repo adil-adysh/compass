@@ -1,0 +1,23 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    name: Test on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Run Pester Tests
+      shell: pwsh
+      run: |
+        Invoke-Pester -Path ./tests/*.Tests.ps1 -Output Detailed
