@@ -149,7 +149,7 @@ Contributions are welcome! Please ensure:
 
 ## License
 
-Copyright (c) 2025. All rights reserved.
+This project is licensed under the Apache License, Version 2.0 - see the [LICENSE](LICENSE) file for details.
 
 ## Version History
 
