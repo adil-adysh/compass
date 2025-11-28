@@ -3,7 +3,7 @@
     RootModule        = 'compass.psm1'
 
     # Version number of this module.
-    ModuleVersion     = '1.0.0'
+    ModuleVersion     = '0.1.0'
 
     # ID used to uniquely identify this module
     GUID              = 'd2d250b3-766e-4c38-9b76-ba8735a26c89'
@@ -50,7 +50,7 @@
             LicenseUri = 'https://opensource.org/licenses/MIT'
             ProjectUri = 'https://github.com/adil-adysh/compass'
             IconUri    = ''
-            ReleaseNotes = '1.0.0 release of Compass with Show-Recent, filtering options, alias, and documentation.'
+            ReleaseNotes = '0.1.0 initial packaged release: refactor to Public/Private, added clipboard and search features, and CI/release workflows.'
         }
     }
 }
