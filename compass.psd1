@@ -9,13 +9,13 @@
     GUID              = 'd2d250b3-766e-4c38-9b76-ba8735a26c89'
 
     # Author of this module
-    Author            = 'adil shaikh'
+    Author            = 'adil-adysh'
 
     # Company or vendor of this module
-    CompanyName       = 'Independent'
+    CompanyName       = 'adil-adysh'
 
     # Copyright statement for this module
-    Copyright         = '(c) 2025 adil shaikh'
+    Copyright         = '(c) 2025 adil-adysh'
 
     # Description of the functionality provided by this module
     Description       = 'A PowerShell utility that surfaces recently modified files with date, size, and extension filters plus readable output.'
@@ -42,8 +42,8 @@
     PrivateData       = @{
         PSData = @{
             Tags       = @('Files', 'Search', 'Recent', 'Filtering', 'Utility')
-            LicenseUri = ''
-            ProjectUri = ''
+            LicenseUri = 'https://opensource.org/licenses/MIT'
+            ProjectUri = 'https://github.com/adil-adysh/compass'
             IconUri    = ''
             ReleaseNotes = '1.0.0 release of Compass with Show-Recent, filtering options, alias, and documentation.'
         }

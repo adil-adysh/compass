@@ -1,5 +1,7 @@
 # Compass PowerShell Module
 
+Maintained by `adil-adysh`.
+
 A modern PowerShell module for finding recently modified files with advanced filtering capabilities.
 
 ## Features
